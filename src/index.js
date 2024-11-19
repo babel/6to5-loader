@@ -20,13 +20,12 @@ if (/^6\./.test(babel.version)) {
 }
 
 const { version } = require("../package.json");
-const cache = require("./cache");
+const cacheHandler = require("./cacheHandler");
 const transform = require("./transform");
 const injectCaller = require("./injectCaller");
 const schema = require("./schema");
 
 const { isAbsolute } = require("path");
-const { promisify } = require("util");
 
 function subscribe(subscriber, metadata, context) {
   if (context[subscriber]) {
@@ -112,6 +111,23 @@ async function loader(source, inputSourceMap, overrides) {
       ),
     );
   }
+  if (typeof loaderOptions.cacheDirectory === "string") {
+    this.emitWarning(
+      new Error(
+        "babel-loader does not support customizing the cacheDirectory since it now uses the webpack builtin cache. You can use cacheDirectory: true and specify the webpack cache location instead via the webpack option `cache.cacheDirectory`.",
+      ),
+    );
+  }
+  if ("cacheCompression" in loaderOptions) {
+    this.emitWarning(
+      new Error(
+        "The option `cacheCompression` has been removed since the babel-loader now uses the webpack builtin cache." +
+        loaderOptions.cacheCompression
+          ? " You can specify the webpack option `cache.compression` to 'gzip' or 'brotli'."
+          : "",
+      ),
+    );
+  }
 
   logger.debug("normalizing loader options");
   // Standardize on 'sourceMaps' as the key passed through to Webpack, so that
@@ -147,7 +163,6 @@ async function loader(source, inputSourceMap, overrides) {
   delete programmaticOptions.customize;
   delete programmaticOptions.cacheDirectory;
   delete programmaticOptions.cacheIdentifier;
-  delete programmaticOptions.cacheCompression;
   delete programmaticOptions.metadataSubscribers;
 
   logger.debug("resolving Babel configs");
@@ -176,32 +191,24 @@ async function loader(source, inputSourceMap, overrides) {
     }
 
     const {
-      cacheDirectory = null,
+      cacheDirectory,
       cacheIdentifier = "core" + transform.version + "," + "loader" + version,
-      cacheCompression = true,
       metadataSubscribers = [],
     } = loaderOptions;
 
     let result;
     if (cacheDirectory) {
       logger.debug("cache is enabled");
-      const getFileTimestamp = promisify((path, cb) => {
-        this._compilation.fileSystemInfo.getFileTimestamp(path, cb);
-      });
-      const hash = this.utils.createHash(
-        this._compilation.outputOptions.hashFunction,
-      );
-      result = await cache({
+      const cacheFacade = this._compilation.getCache("babel-loader");
+      result = await cacheHandler.call(
+        this,
+        filename,
         source,
         options,
-        transform,
-        cacheDirectory,
+        cacheFacade,
         cacheIdentifier,
-        cacheCompression,
-        hash,
-        getFileTimestamp,
         logger,
-      });
+      );
     } else {
       logger.debug("cache is disabled, applying Babel transform");
       result = await transform(source, options);

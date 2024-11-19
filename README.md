@@ -88,11 +88,19 @@ The `options` passed here will be [merged](https://babeljs.io/docs/configuration
 
 This loader also supports the following loader-specific option:
 
-* `cacheDirectory`: Default `false`. When set, the given directory will be used to cache the results of the loader. Future webpack builds will attempt to read from the cache to avoid needing to run the potentially expensive Babel recompilation process on each run. If the value is set to `true` in options (`{cacheDirectory: true}`), the loader will use the default cache directory in `node_modules/.cache/babel-loader` or fallback to the default OS temporary file directory if no `node_modules` folder could be found in any root directory.
+* `cacheDirectory`: Default `false`. When set to `true`, Babel loader will use the [webpack builtin cache](https://webpack.js.org/configuration/cache/) to store the transformed code. 
+  ```js
+  // webpack.config.js
+  module.exports = {
+    ...
+    cache: 'filesystem' // or 'memory'
+  }
+  ```
+  Since webpack already caches loader results, it is recommended that you enable the webpack builtin cache and disable the babel-loader cache. In rare circumstances, such as when there is an uncacheable loader applied after babel-loader, the babel-loader cache can improve the build performance. 
+  
+  If you want to implement your own webpack cache backend, such as redis or lmdb, see [`./test/loader.test.js`](./test/loader.test.js) and search `custom webpack cache plugin` for an example.
 
 * `cacheIdentifier`: Default is a string composed by the `@babel/core`'s version and the `babel-loader`'s version. The final cache id will be determined by the input file path, the [merged](https://babeljs.io/docs/configuration#how-babel-merges-config-items) Babel config via `Babel.loadPartialConfigAsync` and the `cacheIdentifier`. The merged Babel config will be determined by the `babel.config.js` or `.babelrc` file if they exist, or the value of the environment variable `BABEL_ENV` and `NODE_ENV`. `cacheIdentifier` can be set to a custom value to force cache busting if the identifier changes.
-
-* `cacheCompression`: Default `true`. When set, each Babel transform output will be compressed with Gzip. If you want to opt-out of cache compression, set it to `false` -- your project may benefit from this if it transpiles thousands of files.
 
 * `customize`: Default `null`. The path of a module that exports a `custom` callback [like the one that you'd pass to `.custom()`](#customized-loader). Since you already have to make a new file to use this, it is recommended that you instead use `.custom` to create a wrapper loader. Only use this if you _must_ continue using `babel-loader` directly, but still want to customize.
 

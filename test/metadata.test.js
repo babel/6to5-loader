@@ -9,7 +9,6 @@ const { NormalModule } = webpack;
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const cacheDir = path.join(__dirname, "output/cache/cachefiles");
 const outputDir = path.join(__dirname, "output/metadata");
 const babelLoader = path.join(__dirname, "../lib");
 
@@ -114,7 +113,7 @@ test("should obtain metadata from the transform result with cache", async () => 
           test: /\.js/,
           loader: babelLoader,
           options: {
-            cacheDirectory: cacheDir,
+            cacheDirectory: true,
             metadataSubscribers: [WebpackMetadataSubscriberPlugin.subscriber],
             plugins: [babelMetadataProvierPlugin],
             babelrc: false,

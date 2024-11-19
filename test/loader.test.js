@@ -210,7 +210,15 @@ test("should output debug logs when stats.loggingDebug includes babel-loader", a
     },
   });
 
-  const stats = await webpackAsync(config);
+  // The webpack memory cache will be cleaned during compiler shutdown,
+  // so the development default memory cache will not be reused.
+  let stats = await webpackAsync(config);
+  assert.match(
+    stats.toString(config.stats),
+    /normalizing loader options\n\s+resolving Babel configs\n\s+cache is disabled, applying Babel transform/,
+  );
+
+  stats = await webpackAsync(config);
   assert.match(
     stats.toString(config.stats),
     /normalizing loader options\n\s+resolving Babel configs\n\s+cache is disabled, applying Babel transform/,
