@@ -1,4 +1,4 @@
-> This README is for babel-loader v8/v9 with Babel v7
+> This README is for babel-loader v8/v9/v10 with Babel v7
 > If you are using legacy Babel v6, see the [7.x branch](https://github.com/babel/babel-loader/tree/7.x) docs
 
 [![NPM Status](https://img.shields.io/npm/v/babel-loader.svg?style=flat)](https://www.npmjs.com/package/babel-loader)
@@ -25,6 +25,7 @@ This package allows transpiling JavaScript files using [Babel](https://github.co
 > |:-:|:-:|:-:|:-:|
 > | 8.x | 4.x or 5.x | 7.x | >= 8.9 |
 > | 9.x | 5.x | ^7.12.0 | >= 14.15.0 |
+> | 10.x | ^5.61.0 | ^7.12.0 \|\| ^8.0.0-alpha | ^18.20.0 \|\| ^20.10.0 \|\| >=22.0.0` |
 
 
 ```bash
